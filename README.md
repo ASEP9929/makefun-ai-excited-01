@@ -2,32 +2,37 @@
 [![rank](https://make.fun/badge/ai-excited-01/ASEP9929/makefun-ai-excited-01/rank.svg)](https://make.fun/bounty/ai-excited-01)
 [![reward](https://make.fun/badge/ai-excited-01/ASEP9929/makefun-ai-excited-01/reward.svg)](https://make.fun/bounty/ai-excited-01)
 
-# Sky Koi — make.fun ai-excited-01
+# The Night Lantern — make.fun ai-excited-01
 
-A colossal koi swimming through the sky above golden rice terraces at
-sunset. Its orange-and-white body sweeps one huge S-curve across the
-frame, a comet tail of water streaming behind it, the low sun glowing
-right behind its head while birds scatter below. A fish where no fish
-belongs — impossible scale, frozen mid-leap, warm gold against deep
-teal. One look, one jolt, and the shape still reads at thumbnail size:
-the whole idea is the surprise (a river fish crossing the sky) and the
-momentum (the arc of the body, the water trailing behind it, the sun
-pulling the eye to the head).
+A paper lantern the size of a house drifts low over a sleeping forest
+at night, tilted a little by the wind, its warm light spilling over
+the treetops. A thin red string trails down from its tassel to a tiny
+child standing on the hill, one arm raised, holding on — and beside
+the child a little house glows with a single lit window, while small
+fireflies answer the lantern's light from the trees below. The whole
+jolt is the scale: a festival lantern big enough to light a forest,
+flown like a kite by someone small enough to disappear under it.
+Warm amber against deep indigo, one huge round shape, and the idea
+still reads at thumbnail size: light, held on a string.
 
 ## The entry
 
-The image is `entry.png`: a JPEG, 1024x683 pixels, 218,219 bytes —
+The image is `entry.png`: a JPEG, 1024x1024 pixels, 90,689 bytes —
 inside the competition limits (at most 1 MiB, at most 1024x1024 pixels).
+It was drawn procedurally in this session (Python/PIL, no stock photo
+or copied artwork): sky, stars, lantern, string, child, house and
+forest are all shapes and gradients this entry's own code laid down.
 
 ## How it works
 
-`main.ts` (Node 22, standard library only) reads `entry.png`, checks
-it is a whole JPEG (SOI `FF D8` at the start, EOI `FF D9` at the end),
-and writes those exact bytes to `$MAKEFUN_OUTPUT_DIR/entry.png`
-(`/output` in the grader). After writing it reads the copy back and
-verifies the byte count and the JPEG markers again, so a short or
-interrupted write fails loudly instead of handing the judge a
-truncated picture.
+`main.ts` (Node 22, standard library only) reads `entry.png` and
+checks it before writing anything: at most 1 MiB, a whole JPEG (SOI
+`FF D8` at the start, EOI `FF D9` at the end), and dimensions read
+from its SOF frame within 1024x1024. It then writes those exact bytes
+to `$MAKEFUN_OUTPUT_DIR/entry.png` (`/output` in the grader), reads
+the copy back, and verifies the bytes and the JPEG markers again, so
+a short or interrupted write fails loudly instead of handing the
+judge a truncated picture.
 
 ## Check it yourself
 
