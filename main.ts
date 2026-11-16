@@ -1,38 +1,73 @@
-// ai-excited-01 — "Leviathan Rush Hour"
-// A colossal humpback whale breaching straight up through a city skyline at
-// golden hour: impossible scale, water exploding, the sun right behind it.
-// The image is the entry; this program only places it where the grader looks.
-// Node 22, standard library only. Deterministic: a byte-for-byte copy, so two
-// runs always write the same bytes to /output/entry.png.
+// ai-excited-01 — "Sky Koi"
+// A colossal koi arcs through the sky above golden rice terraces at
+// sunset, dragging a comet tail of water behind it: a fish where no fish
+// belongs, frozen mid-leap with the sun at its head. The picture is the
+// whole entry; this program only carries it to where the grader looks.
 //
-// The copy is verified before the program exits: the output must be exactly
-// as many bytes as the image beside this file, so a short or interrupted
-// write fails loudly instead of handing the judge a truncated picture.
+// Node 22, standard library only. Deterministic: the output is the exact
+// bytes of the image beside this file, so two runs always produce the
+// same file at /output/entry.png and the judge never sees a half-written
+// picture. The bytes are read and checked before anything is written, so
+// a corrupt source fails loudly instead of handing the judge a broken
+// image.
 //
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
+// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for
+// /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-const outFile = join(outDir, 'entry.png');
-const source = join(dirname(fileURLToPath(import.meta.url)), 'entry.png');
+const IMAGE_NAME = 'entry.png';
 
-mkdirSync(outDir, { recursive: true });
-copyFileSync(source, outFile);
-
-const written = statSync(outFile).size;
-const expected = statSync(source).size;
-if (written !== expected) {
-  throw new Error(`entry.png copy incomplete: wrote ${written} of ${expected} bytes`);
+// Where the picture goes, and where it comes from.
+function locate() {
+  const targetDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+  const here = new URL('.', import.meta.url).pathname;
+  return {
+    sourcePath: join(here, IMAGE_NAME),
+    targetPath: join(targetDir, IMAGE_NAME),
+    targetDir,
+  };
 }
 
-// The gate only judges a whole image, so confirm the file is one: a JPEG
-// opens with SOI (FF D8) and closes with EOI (FF D9). A file missing
-// either end is not the picture the judge should see.
-const bytes = readFileSync(outFile);
-if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
-  throw new Error('entry.png is not a whole JPEG: SOI/EOI markers missing');
+// A whole JPEG opens with SOI (FF D8) and closes with EOI (FF D9).
+// Anything missing either end is not the picture the judge should see.
+function isWholeJpeg(bytes) {
+  return (
+    bytes.length >= 4 &&
+    bytes[0] === 0xff &&
+    bytes[1] === 0xd8 &&
+    bytes[bytes.length - 2] === 0xff &&
+    bytes[bytes.length - 1] === 0xd9
+  );
 }
+
+function deliver() {
+  const { sourcePath, targetPath, targetDir } = locate();
+
+  if (!existsSync(sourcePath)) {
+    throw new Error(`missing source image: ${sourcePath}`);
+  }
+
+  const picture = readFileSync(sourcePath);
+  if (!isWholeJpeg(picture)) {
+    throw new Error('entry.png is not a whole JPEG: SOI/EOI markers missing');
+  }
+
+  mkdirSync(targetDir, { recursive: true });
+  writeFileSync(targetPath, picture);
+
+  // Confirm the write landed whole: same bytes back, still a whole JPEG.
+  const written = readFileSync(targetPath);
+  if (written.length !== picture.length) {
+    throw new Error(
+      `entry.png copy incomplete: wrote ${written.length} of ${picture.length} bytes`,
+    );
+  }
+  if (!isWholeJpeg(written)) {
+    throw new Error('entry.png copy is not a whole JPEG after writing');
+  }
+}
+
+deliver();
